@@ -19,14 +19,25 @@ cat("- Stella Cipriano Queiroz\n")
 cat("- Cesar Julinho Garcia Rios\n\n")
 
 # ============================================================
-# 1. Carregamento dos pacotes
+# 1. Descrição do domínio
+# ============================================================
+
+# O domínio deste trabalho é a saúde pública, com foco na vigilância
+# epidemiológica da dengue no Brasil.
+
+
+cat("1. Descrição do domínio\n")
+cat("Domínio: saúde pública, com foco na vigilância epidemiológica da dengue no Brasil.\n\n")
+
+# ============================================================
+# 2. Carregamento dos pacotes
 # ============================================================
 
 library(tidyverse)
 library(daltoolbox)
 
 # ============================================================
-# 2. Carregamento da base de dados
+# 3. Carregamento da base de dados
 # ============================================================
 
 caminho_base <- "dados/DENGBR24.csv"
@@ -34,7 +45,7 @@ caminho_base <- "dados/DENGBR24.csv"
 dados_dengue <- read_csv2(caminho_base)
 
 # ============================================================
-# 3. Conferência inicial da leitura
+# 4. Conferência inicial da leitura
 # ============================================================
 
 cat("Base carregada com sucesso.\n")
