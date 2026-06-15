@@ -1,55 +1,34 @@
-# ============================================================
-# T1 - Busca e Análise Exploratória de Dados com DAL Toolbox
-# Base: DENGBR24.csv
-# Fonte: https://dados.gov.br/dados/conjuntos-dados/arboviroses-dengue
-# ============================================================
-
-# ============================================================
-# Integrantes
-# ============================================================
-
-# Robson Eduardo
-# Stella Cipriano Queiroz
-# Cesar Julinho Garcia Rios
-
-cat("T1 - Busca e Análise Exploratória de Dados com DAL Toolbox\n")
-cat("Integrantes:\n")
-cat("- Robson Eduardo\n")
-cat("- Stella Cipriano Queiroz\n")
-cat("- Cesar Julinho Garcia Rios\n\n")
-
-# ============================================================
-# 1. Descrição do domínio
-# ============================================================
-
-# O domínio deste trabalho é a saúde pública, com foco na vigilância
-# epidemiológica da dengue no Brasil.
-
-
-cat("1. Descrição do domínio\n")
-cat("Domínio: saúde pública, com foco na vigilância epidemiológica da dengue no Brasil.\n\n")
-
-# ============================================================
-# 2. Carregamento dos pacotes
-# ============================================================
-
-library(tidyverse)
+# ------------------------------------------------------------
+# 1. Carregamento das bibliotecas
+# ------------------------------------------------------------
 library(daltoolbox)
+library(tidyr)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(stringr)
 
-# ============================================================
-# 3. Carregamento da base de dados
-# ============================================================
 
-caminho_base <- "dados/DENGBR24.csv"
+# ------------------------------------------------------------
+# 2. Leitura da base de dados de dengue - 2025
+# ------------------------------------------------------------
 
-dados_dengue <- read_csv2(caminho_base)
+dados_dengue <- read_delim(
+  file = "dados/DENGBR25.csv",
+  delim = ",",
+  col_types = cols(.default = col_character()),
+  show_col_types = FALSE
+)
 
-# ============================================================
-# 4. Conferência inicial da leitura
-# ============================================================
+# ------------------------------------------------------------
+# 3. Caracterização inicial do dataset original
+# ------------------------------------------------------------
 
-cat("Base carregada com sucesso.\n")
-cat("Quantidade de linhas:", nrow(dados_dengue), "\n")
-cat("Quantidade de colunas:", ncol(dados_dengue), "\n\n")
+quantidade_linhas_original <- nrow(dados_dengue)
+quantidade_colunas_original <- ncol(dados_dengue)
 
-head(dados_dengue)
+cat("Quantidade de linhas: ",quantidade_linhas_original,"\n")
+cat("Quantidade de colunas: ",quantidade_colunas_original,"\n")
+
+
+
