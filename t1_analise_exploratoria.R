@@ -30,5 +30,12 @@ quantidade_colunas_original <- ncol(dados_dengue)
 cat("Quantidade de linhas: ",quantidade_linhas_original,"\n")
 cat("Quantidade de colunas: ",quantidade_colunas_original,"\n")
 
+# ------------------------------------------------------------
+# 4. Caracterização da base, dos tipos de atributos, dos valores faltantes e das
+  #duplicidade
+# ------------------------------------------------------------
 
 
+# ------------------------------------------------------------
+# 5. Estatísticas descritivas e pelo menos cinco visualizações relevantes
+# ------------------------------------------------------------
