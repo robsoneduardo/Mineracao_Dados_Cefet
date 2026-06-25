@@ -34,6 +34,26 @@ cat("Quantidade de colunas: ",quantidade_colunas_original,"\n")
 # 4. Caracterização da base, dos tipos de atributos, dos valores faltantes e das
   #duplicidade
 # ------------------------------------------------------------
+#Valores ausentes
+valores_faltantes <- data.frame(
+  atributo = names(dados_dengue),
+  quantidade_faltantes = colSums(is.na(dados_dengue)),
+  total_valores_coluna = sapply(dados_dengue, length)
+) %>%
+  mutate(
+    percentual_faltantes = round(
+      quantidade_faltantes / total_valores_coluna * 100,
+      2
+    )
+  ) %>%
+  arrange(desc(quantidade_faltantes))
+
+valores_faltantes
+
+#Duplicidades
+quantidade_duplicados <- sum(duplicated(dados_dengue))
+
+quantidade_duplicados
 
 
 # ------------------------------------------------------------
