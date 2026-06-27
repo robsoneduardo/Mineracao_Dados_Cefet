@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="César Rios">
+<meta name="author" content="Robson Alves">
+<meta name="author" content="Stella Queiroz">
+
+<title>Trabalho de Mineração de Dados: Análise do Desfecho de Casos de Dengue na Região Sudeste do Brasil em 2024</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="analise_dengue_files/libs/clipboard/clipboard.min.js"></script>
+<script src="analise_dengue_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="analise_dengue_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="analise_dengue_files/libs/quarto-html/popper.min.js"></script>
+<script src="analise_dengue_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="analise_dengue_files/libs/quarto-html/anchor.min.js"></script>
+<link href="analise_dengue_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="analise_dengue_files/libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="analise_dengue_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="analise_dengue_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="analise_dengue_files/libs/bootstrap/bootstrap-7999f146b20e765ce25e72cfcf83283c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#estatisticas-descritivas" id="toc-estatisticas-descritivas" class="nav-link active" data-scroll-target="#estatisticas-descritivas">##Estatisticas Descritivas</a></li>
+  <li><a href="#visualizacoes-relevantes" id="toc-visualizacoes-relevantes" class="nav-link" data-scroll-target="#visualizacoes-relevantes">##Visualizacoes Relevantes</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Trabalho de Mineração de Dados: Análise do Desfecho de Casos de Dengue na Região Sudeste do Brasil em 2024</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Authors</div>
+    <div class="quarto-title-meta-contents">
+             <p>César Rios </p>
+             <p>Robson Alves </p>
+             <p>Stella Queiroz </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>##Carregando Bibliotecas</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(daltoolbox)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(grDevices)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RColorBrewer)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>##Leitura da base</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>dados_dengue <span class="ot">&lt;-</span> <span class="fu">read_delim</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"dados/DENGBR24.csv"</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">delim =</span> <span class="st">","</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">col_types =</span> <span class="fu">cols</span>(<span class="at">.default =</span> <span class="fu">col_character</span>()),</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#head(dados_dengue)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>##Caracteristicas da Base original</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>quantidade_linhas_original <span class="ot">&lt;-</span> <span class="fu">nrow</span>(dados_dengue)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>quantidade_colunas_original <span class="ot">&lt;-</span> <span class="fu">ncol</span>(dados_dengue)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Quantidade de linhas: "</span>,quantidade_linhas_original,<span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Quantidade de linhas:  6564924 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Quantidade de colunas: "</span>,quantidade_colunas_original,<span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Quantidade de colunas:  121 </code></pre>
+</div>
+</div>
+<p>##Criando Base com dados do Sudeste e Filtrando apenas os casos confirmados de óbito ou cura</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>dados_dengue_sudeste <span class="ot">&lt;-</span> dados_dengue[</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  dados_dengue<span class="sc">$</span>SG_UF_NOT <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">33</span>,<span class="dv">32</span>,<span class="dv">35</span>,<span class="dv">31</span>) <span class="sc">&amp;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  dados_dengue<span class="sc">$</span>EVOLUCAO <span class="sc">%in%</span>  <span class="fu">c</span>(<span class="st">"1"</span>,<span class="st">"2"</span>,<span class="st">"3"</span>,<span class="st">"4"</span>),</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>quantidade_linhas_sudeste <span class="ot">&lt;-</span> <span class="fu">nrow</span>(dados_dengue_sudeste)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>quantidade_colunas_sudeste <span class="ot">&lt;-</span> <span class="fu">ncol</span>(dados_dengue_sudeste)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Quantiade de linhas: "</span>,quantidade_linhas_sudeste,<span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Quantiade de linhas:  3509184 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Quantidade de colunas: "</span>,quantidade_colunas_sudeste,<span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Quantidade de colunas:  121 </code></pre>
+</div>
+</div>
+<p>##Removendo objetos que nao serao mais usados</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(dados_dengue)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gc</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            used   (Mb) gc trigger    (Mb)   max used   (Mb)
+Ncells   3249455  173.6    6023780   321.8    4830928  258.0
+Vcells 430088961 3281.4 1372231218 10469.3 1229664994 9381.6</code></pre>
+</div>
+</div>
+<p>##tratando coluna idade</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>dados_dengue_sudeste <span class="ot">&lt;-</span> dados_dengue_sudeste <span class="sc">%&gt;%</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">unidade_idade =</span> <span class="fu">substr</span>(NU_IDADE_N, <span class="dv">1</span>, <span class="dv">1</span>),</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">idade =</span> <span class="fu">as.numeric</span>(<span class="fu">substr</span>(NU_IDADE_N, <span class="dv">2</span>, <span class="dv">4</span>))</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>##criando coluna faixa etaria</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>dados_dengue_sudeste <span class="ot">&lt;-</span> dados_dengue_sudeste <span class="sc">%&gt;%</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">faixa_etaria =</span> <span class="fu">case_when</span>(</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>      unidade_idade <span class="sc">!=</span> <span class="st">"4"</span> <span class="sc">~</span> <span class="cn">NA_character_</span>,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>      idade <span class="sc">&lt;</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">"Menor de 1 ano"</span>,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>      idade <span class="sc">&gt;=</span> <span class="dv">1</span>  <span class="sc">&amp;</span> idade <span class="sc">&lt;=</span> <span class="dv">4</span>  <span class="sc">~</span> <span class="st">"1 a 4 anos"</span>,</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>      idade <span class="sc">&gt;=</span> <span class="dv">5</span>  <span class="sc">&amp;</span> idade <span class="sc">&lt;=</span> <span class="dv">9</span>  <span class="sc">~</span> <span class="st">"5 a 9 anos"</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>      idade <span class="sc">&gt;=</span> <span class="dv">10</span> <span class="sc">&amp;</span> idade <span class="sc">&lt;=</span> <span class="dv">19</span> <span class="sc">~</span> <span class="st">"10 a 19 anos"</span>,</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>      idade <span class="sc">&gt;=</span> <span class="dv">20</span> <span class="sc">&amp;</span> idade <span class="sc">&lt;=</span> <span class="dv">39</span> <span class="sc">~</span> <span class="st">"20 a 39 anos"</span>,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>      idade <span class="sc">&gt;=</span> <span class="dv">40</span> <span class="sc">&amp;</span> idade <span class="sc">&lt;=</span> <span class="dv">59</span> <span class="sc">~</span> <span class="st">"40 a 59 anos"</span>,</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>      idade <span class="sc">&gt;=</span> <span class="dv">60</span> <span class="sc">~</span> <span class="st">"60 anos ou mais"</span>,</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_character_</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>##valores faltantes por coluna da tabela</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>tabela_faltantes <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">atributo =</span> <span class="fu">names</span>(dados_dengue_sudeste),</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">quantidade_faltantes =</span> <span class="fu">colSums</span>(<span class="fu">is.na</span>(dados_dengue_sudeste)),</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">total_valores_coluna =</span> <span class="fu">sapply</span>(dados_dengue_sudeste, length)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">percentual_faltantes =</span> <span class="fu">round</span>(</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>      quantidade_faltantes <span class="sc">/</span> total_valores_coluna <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>      <span class="dv">2</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(quantidade_faltantes))</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>tabela_faltantes</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                   atributo quantidade_faltantes total_valores_coluna
+DT_CHIK_S2       DT_CHIK_S2              3509175              3509184
+DT_PRNT             DT_PRNT              3509004              3509184
+DT_CHIK_S1       DT_CHIK_S1              3508081              3509184
+DT_OBITO           DT_OBITO              3504425              3509184
+DT_GRAV             DT_GRAV              3503514              3509184
+DT_VIRAL           DT_VIRAL              3501398              3509184
+DT_ALRM             DT_ALRM              3459022              3509184
+DT_INTERNA       DT_INTERNA              3438020              3509184
+DOENCA_TRA       DOENCA_TRA              3392718              3509184
+MANI_HEMOR       MANI_HEMOR              3392718              3509184
+EPISTAXE           EPISTAXE              3392718              3509184
+GENGIVO             GENGIVO              3392718              3509184
+METRO                 METRO              3392718              3509184
+PETEQUIAS         PETEQUIAS              3392718              3509184
+HEMATURA           HEMATURA              3392718              3509184
+SANGRAM             SANGRAM              3392718              3509184
+LACO_N               LACO_N              3392718              3509184
+PLASMATICO       PLASMATICO              3392718              3509184
+EVIDENCIA         EVIDENCIA              3392718              3509184
+PLAQ_MENOR       PLAQ_MENOR              3392718              3509184
+CON_FHD             CON_FHD              3392718              3509184
+COMPLICA           COMPLICA              3392718              3509184
+FLXRECEBI         FLXRECEBI              3392717              3509184
+MIGRADO_W         MIGRADO_W              3392717              3509184
+RESUL_PRNT       RESUL_PRNT              3388498              3509184
+RES_CHIKS2       RES_CHIKS2              3388492              3509184
+RES_CHIKS1       RES_CHIKS1              3387821              3509184
+GRAV_MIOC         GRAV_MIOC              3387670              3509184
+GRAV_AST           GRAV_AST              3387667              3509184
+GRAV_SANG         GRAV_SANG              3387664              3509184
+GRAV_ORGAO       GRAV_ORGAO              3387663              3509184
+GRAV_METRO       GRAV_METRO              3387662              3509184
+GRAV_CONSC       GRAV_CONSC              3387656              3509184
+GRAV_ENCH         GRAV_ENCH              3387655              3509184
+GRAV_MELEN       GRAV_MELEN              3387655              3509184
+GRAV_HIPOT       GRAV_HIPOT              3387653              3509184
+GRAV_CONV         GRAV_CONV              3387652              3509184
+GRAV_INSUF       GRAV_INSUF              3387652              3509184
+GRAV_HEMAT       GRAV_HEMAT              3387650              3509184
+GRAV_EXTRE       GRAV_EXTRE              3387648              3509184
+GRAV_PULSO       GRAV_PULSO              3387644              3509184
+GRAV_TAQUI       GRAV_TAQUI              3387643              3509184
+CLINC_CHIK       CLINC_CHIK              3385277              3509184
+NDUPLIC_N         NDUPLIC_N              3383321              3509184
+DT_PCR               DT_PCR              3379660              3509184
+ALRM_LIQ           ALRM_LIQ              3343958              3509184
+ALRM_HEPAT       ALRM_HEPAT              3343947              3509184
+ALRM_HEMAT       ALRM_HEMAT              3343850              3509184
+ALRM_VOM           ALRM_VOM              3343821              3509184
+ALRM_HIPOT       ALRM_HIPOT              3343627              3509184
+ALRM_PLAQ         ALRM_PLAQ              3343610              3509184
+ALRM_SANG         ALRM_SANG              3343562              3509184
+ALRM_LETAR       ALRM_LETAR              3343408              3509184
+ALRM_ABDOM       ALRM_ABDOM              3343373              3509184
+MUNICIPIO         MUNICIPIO              3324607              3509184
+UF                       UF              3323066              3509184
+SOROTIPO           SOROTIPO              3295697              3509184
+DT_SORO             DT_SORO              2940354              3509184
+ID_OCUPA_N       ID_OCUPA_N              2466480              3509184
+DT_NS1               DT_NS1              2081113              3509184
+HISTOPA_N         HISTOPA_N              2032411              3509184
+IMUNOH_N           IMUNOH_N              2031496              3509184
+RESUL_VI_N       RESUL_VI_N              1832331              3509184
+RESUL_PCR_       RESUL_PCR_              1771106              3509184
+RESUL_SORO       RESUL_SORO              1429068              3509184
+RESUL_NS1         RESUL_NS1               973553              3509184
+COMUNINF           COMUNINF               882983              3509184
+COPAISINF         COPAISINF               878190              3509184
+COUFINF             COUFINF               878187              3509184
+TPAUTOCTO         TPAUTOCTO               787663              3509184
+HOSPITALIZ       HOSPITALIZ               741619              3509184
+CS_ESCOL_N       CS_ESCOL_N               663819              3509184
+ID_REGIONA       ID_REGIONA               228216              3509184
+ID_RG_RESI       ID_RG_RESI               228092              3509184
+TP_SISTEMA       TP_SISTEMA                66341              3509184
+DT_DIGITA         DT_DIGITA                65462              3509184
+faixa_etaria   faixa_etaria                24978              3509184
+ANO_NASC           ANO_NASC                14784              3509184
+DT_ENCERRA       DT_ENCERRA                 4071              3509184
+CRITERIO           CRITERIO                 2185              3509184
+CS_FLXRET         CS_FLXRET                  735              3509184
+CS_GESTANT       CS_GESTANT                  457              3509184
+ID_UNIDADE       ID_UNIDADE                  448              3509184
+FEBRE                 FEBRE                   33              3509184
+MIALGIA             MIALGIA                   33              3509184
+CEFALEIA           CEFALEIA                   33              3509184
+EXANTEMA           EXANTEMA                   33              3509184
+VOMITO               VOMITO                   33              3509184
+NAUSEA               NAUSEA                   33              3509184
+DOR_COSTAS       DOR_COSTAS                   33              3509184
+CONJUNTVIT       CONJUNTVIT                   33              3509184
+ARTRITE             ARTRITE                   33              3509184
+ARTRALGIA         ARTRALGIA                   33              3509184
+PETEQUIA_N       PETEQUIA_N                   33              3509184
+LEUCOPENIA       LEUCOPENIA                   33              3509184
+LACO                   LACO                   33              3509184
+DOR_RETRO         DOR_RETRO                   33              3509184
+DIABETES           DIABETES                   33              3509184
+HEMATOLOG         HEMATOLOG                   33              3509184
+HEPATOPAT         HEPATOPAT                   33              3509184
+RENAL                 RENAL                   33              3509184
+HIPERTENSA       HIPERTENSA                   33              3509184
+ACIDO_PEPT       ACIDO_PEPT                   33              3509184
+AUTO_IMUNE       AUTO_IMUNE                   33              3509184
+CLASSI_FIN       CLASSI_FIN                   19              3509184
+CS_SEXO             CS_SEXO                    5              3509184
+CS_RACA             CS_RACA                    4              3509184
+ID_MN_RESI       ID_MN_RESI                    4              3509184
+idade                 idade                    3              3509184
+ID_PAIS             ID_PAIS                    1              3509184
+TP_NOT               TP_NOT                    0              3509184
+ID_AGRAVO         ID_AGRAVO                    0              3509184
+DT_NOTIFIC       DT_NOTIFIC                    0              3509184
+SEM_NOT             SEM_NOT                    0              3509184
+NU_ANO               NU_ANO                    0              3509184
+SG_UF_NOT         SG_UF_NOT                    0              3509184
+ID_MUNICIP       ID_MUNICIP                    0              3509184
+DT_SIN_PRI       DT_SIN_PRI                    0              3509184
+SEM_PRI             SEM_PRI                    0              3509184
+NU_IDADE_N       NU_IDADE_N                    0              3509184
+SG_UF                 SG_UF                    0              3509184
+DT_INVEST         DT_INVEST                    0              3509184
+EVOLUCAO           EVOLUCAO                    0              3509184
+unidade_idade unidade_idade                    0              3509184
+              percentual_faltantes
+DT_CHIK_S2                  100.00
+DT_PRNT                      99.99
+DT_CHIK_S1                   99.97
+DT_OBITO                     99.86
+DT_GRAV                      99.84
+DT_VIRAL                     99.78
+DT_ALRM                      98.57
+DT_INTERNA                   97.97
+DOENCA_TRA                   96.68
+MANI_HEMOR                   96.68
+EPISTAXE                     96.68
+GENGIVO                      96.68
+METRO                        96.68
+PETEQUIAS                    96.68
+HEMATURA                     96.68
+SANGRAM                      96.68
+LACO_N                       96.68
+PLASMATICO                   96.68
+EVIDENCIA                    96.68
+PLAQ_MENOR                   96.68
+CON_FHD                      96.68
+COMPLICA                     96.68
+FLXRECEBI                    96.68
+MIGRADO_W                    96.68
+RESUL_PRNT                   96.56
+RES_CHIKS2                   96.56
+RES_CHIKS1                   96.54
+GRAV_MIOC                    96.54
+GRAV_AST                     96.54
+GRAV_SANG                    96.54
+GRAV_ORGAO                   96.54
+GRAV_METRO                   96.54
+GRAV_CONSC                   96.54
+GRAV_ENCH                    96.54
+GRAV_MELEN                   96.54
+GRAV_HIPOT                   96.54
+GRAV_CONV                    96.54
+GRAV_INSUF                   96.54
+GRAV_HEMAT                   96.54
+GRAV_EXTRE                   96.54
+GRAV_PULSO                   96.54
+GRAV_TAQUI                   96.54
+CLINC_CHIK                   96.47
+NDUPLIC_N                    96.41
+DT_PCR                       96.31
+ALRM_LIQ                     95.29
+ALRM_HEPAT                   95.29
+ALRM_HEMAT                   95.29
+ALRM_VOM                     95.29
+ALRM_HIPOT                   95.28
+ALRM_PLAQ                    95.28
+ALRM_SANG                    95.28
+ALRM_LETAR                   95.28
+ALRM_ABDOM                   95.27
+MUNICIPIO                    94.74
+UF                           94.70
+SOROTIPO                     93.92
+DT_SORO                      83.79
+ID_OCUPA_N                   70.29
+DT_NS1                       59.30
+HISTOPA_N                    57.92
+IMUNOH_N                     57.89
+RESUL_VI_N                   52.22
+RESUL_PCR_                   50.47
+RESUL_SORO                   40.72
+RESUL_NS1                    27.74
+COMUNINF                     25.16
+COPAISINF                    25.03
+COUFINF                      25.03
+TPAUTOCTO                    22.45
+HOSPITALIZ                   21.13
+CS_ESCOL_N                   18.92
+ID_REGIONA                    6.50
+ID_RG_RESI                    6.50
+TP_SISTEMA                    1.89
+DT_DIGITA                     1.87
+faixa_etaria                  0.71
+ANO_NASC                      0.42
+DT_ENCERRA                    0.12
+CRITERIO                      0.06
+CS_FLXRET                     0.02
+CS_GESTANT                    0.01
+ID_UNIDADE                    0.01
+FEBRE                         0.00
+MIALGIA                       0.00
+CEFALEIA                      0.00
+EXANTEMA                      0.00
+VOMITO                        0.00
+NAUSEA                        0.00
+DOR_COSTAS                    0.00
+CONJUNTVIT                    0.00
+ARTRITE                       0.00
+ARTRALGIA                     0.00
+PETEQUIA_N                    0.00
+LEUCOPENIA                    0.00
+LACO                          0.00
+DOR_RETRO                     0.00
+DIABETES                      0.00
+HEMATOLOG                     0.00
+HEPATOPAT                     0.00
+RENAL                         0.00
+HIPERTENSA                    0.00
+ACIDO_PEPT                    0.00
+AUTO_IMUNE                    0.00
+CLASSI_FIN                    0.00
+CS_SEXO                       0.00
+CS_RACA                       0.00
+ID_MN_RESI                    0.00
+idade                         0.00
+ID_PAIS                       0.00
+TP_NOT                        0.00
+ID_AGRAVO                     0.00
+DT_NOTIFIC                    0.00
+SEM_NOT                       0.00
+NU_ANO                        0.00
+SG_UF_NOT                     0.00
+ID_MUNICIP                    0.00
+DT_SIN_PRI                    0.00
+SEM_PRI                       0.00
+NU_IDADE_N                    0.00
+SG_UF                         0.00
+DT_INVEST                     0.00
+EVOLUCAO                      0.00
+unidade_idade                 0.00</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(tabela_faltantes)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gc</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            used   (Mb) gc trigger    (Mb)   max used   (Mb)
+Ncells   3278677  175.2    6023780   321.8    4830928  258.0
+Vcells 440678091 3362.2 1372231218 10469.3 1229664994 9381.6</code></pre>
+</div>
+</div>
+<p>##Linhas em duplicidade</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">#quantidade_linhas_duplicadas &lt;- sum(duplicated(dados_dengue_sudeste))</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="co">#quantidade_linhas_duplicadas</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="estatisticas-descritivas" class="level1">
+<h1>##Estatisticas Descritivas</h1>
+<p>##Frequencia absoluta e relativa com relacao aos obitos e curas</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>frequencia_evolucao <span class="ot">&lt;-</span> dados_dengue_sudeste <span class="sc">%&gt;%</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(EVOLUCAO, <span class="at">name =</span> <span class="st">"frequencia_absoluta"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">descricao_evolucao =</span> <span class="fu">case_when</span>(</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>      EVOLUCAO <span class="sc">==</span> <span class="st">"1"</span> <span class="sc">~</span> <span class="st">"Cura"</span>,</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>      EVOLUCAO <span class="sc">==</span> <span class="st">"2"</span> <span class="sc">~</span> <span class="st">"Óbito pelo agravo"</span>,</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>      EVOLUCAO <span class="sc">==</span> <span class="st">"3"</span> <span class="sc">~</span> <span class="st">"Óbito por outras causas"</span>,</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>      EVOLUCAO <span class="sc">==</span> <span class="st">"4"</span> <span class="sc">~</span> <span class="st">"Óbito em investigação"</span>,</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>      EVOLUCAO <span class="sc">==</span> <span class="st">"9"</span> <span class="sc">~</span> <span class="st">"Ignorado"</span>,</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">is.na</span>(EVOLUCAO) <span class="sc">~</span> <span class="st">"Ausente"</span>,</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Outro código"</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">frequencia_relativa =</span> <span class="fu">round</span>(</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>      frequencia_absoluta <span class="sc">/</span> <span class="fu">sum</span>(frequencia_absoluta) <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>      <span class="dv">2</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>    EVOLUCAO,</span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>    descricao_evolucao,</span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>    frequencia_absoluta,</span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>    frequencia_relativa</span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(EVOLUCAO)</span>
+<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a>frequencia_evolucao</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 4
+  EVOLUCAO descricao_evolucao      frequencia_absoluta frequencia_relativa
+  &lt;chr&gt;    &lt;chr&gt;                                 &lt;int&gt;               &lt;dbl&gt;
+1 1        Cura                                3504428               99.9 
+2 2        Óbito pelo agravo                      3696                0.11
+3 3        Óbito por outras causas                 807                0.02
+4 4        Óbito em investigação                   253                0.01</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(frequencia_evolucao)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gc</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            used   (Mb) gc trigger    (Mb)   max used   (Mb)
+Ncells   3336079  178.2    6023780   321.8    4830928  258.0
+Vcells 440805478 3363.1 1372231218 10469.3 1229664994 9381.6</code></pre>
+</div>
+</div>
+<p>##Quartis das notificacoes no ano 2024</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>quartis_notificacoes <span class="ot">&lt;-</span> dados_dengue_sudeste <span class="sc">%&gt;%</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">SEM_NOT =</span> <span class="fu">as.numeric</span>(SEM_NOT)) <span class="sc">%&gt;%</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(SEM_NOT)) <span class="sc">%&gt;%</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(SEM_NOT, <span class="at">name =</span> <span class="st">"quantidade_notificacoes"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(SEM_NOT) <span class="sc">%&gt;%</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">notificacoes_acumuladas =</span> <span class="fu">cumsum</span>(quantidade_notificacoes),</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">percentual_acumulado =</span> notificacoes_acumuladas <span class="sc">/</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sum</span>(quantidade_notificacoes) <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">semana_25_porcento =</span> <span class="fu">min</span>(SEM_NOT[percentual_acumulado <span class="sc">&gt;=</span> <span class="dv">25</span>]),</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">semana_mediana_50_porcento =</span> <span class="fu">min</span>(SEM_NOT[percentual_acumulado <span class="sc">&gt;=</span> <span class="dv">50</span>]),</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">semana_75_porcento =</span> <span class="fu">min</span>(SEM_NOT[percentual_acumulado <span class="sc">&gt;=</span> <span class="dv">75</span>])</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>quartis_notificacoes</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 3
+  semana_25_porcento semana_mediana_50_porcento semana_75_porcento
+               &lt;dbl&gt;                      &lt;dbl&gt;              &lt;dbl&gt;
+1             202410                     202414             202419</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(quartis_notificacoes)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gc</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            used   (Mb) gc trigger    (Mb)   max used   (Mb)
+Ncells   3338096  178.3    6023780   321.8    4830928  258.0
+Vcells 440810134 3363.2 1372231218 10469.3 1229664994 9381.6</code></pre>
+</div>
+</div>
+<p>##Tempo medio entre inicio dos sintomas e notificacao</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>estatisticas_tempo_notificacao <span class="ot">&lt;-</span> dados_dengue_sudeste <span class="sc">%&gt;%</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data_notificacao =</span> <span class="fu">as.Date</span>(DT_NOTIFIC),</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data_primeiros_sintomas =</span> <span class="fu">as.Date</span>(DT_SIN_PRI),</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">dias_ate_notificacao =</span> <span class="fu">as.numeric</span>(</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>      data_notificacao <span class="sc">-</span> data_primeiros_sintomas</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(dias_ate_notificacao),</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>    dias_ate_notificacao <span class="sc">&gt;=</span> <span class="dv">0</span></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">media_dias =</span> <span class="fu">round</span>(<span class="fu">mean</span>(dias_ate_notificacao, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">2</span>),</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">mediana_dias =</span> stats<span class="sc">::</span><span class="fu">median</span>(dias_ate_notificacao, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">desvio_padrao_dias =</span> <span class="fu">round</span>(stats<span class="sc">::</span><span class="fu">sd</span>(dias_ate_notificacao, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">2</span>),</span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">minimo_dias =</span> <span class="fu">min</span>(dias_ate_notificacao, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">maximo_dias =</span> <span class="fu">max</span>(dias_ate_notificacao, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a>estatisticas_tempo_notificacao</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 5
+  media_dias mediana_dias desvio_padrao_dias minimo_dias maximo_dias
+       &lt;dbl&gt;        &lt;dbl&gt;              &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;
+1       4.71            3               11.0           0         373</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(estatisticas_tempo_notificacao)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gc</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            used   (Mb) gc trigger    (Mb)   max used   (Mb)
+Ncells   3340190  178.4    6023780   321.8    4830928  258.0
+Vcells 440814797 3363.2 1372231218 10469.3 1229664994 9381.6</code></pre>
+</div>
+</div>
+<p>##Proporçao de Notificacoes por Estado</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>proporcao_por_estado_notificacao <span class="ot">&lt;-</span> dados_dengue_sudeste <span class="sc">%&gt;%</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">estado_notificacao =</span> <span class="fu">case_when</span>(</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>      SG_UF_NOT <span class="sc">==</span> <span class="st">"31"</span> <span class="sc">~</span> <span class="st">"MG"</span>,</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>      SG_UF_NOT <span class="sc">==</span> <span class="st">"32"</span> <span class="sc">~</span> <span class="st">"ES"</span>,</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>      SG_UF_NOT <span class="sc">==</span> <span class="st">"33"</span> <span class="sc">~</span> <span class="st">"RJ"</span>,</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>      SG_UF_NOT <span class="sc">==</span> <span class="st">"35"</span> <span class="sc">~</span> <span class="st">"SP"</span>,</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_character_</span></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(estado_notificacao)) <span class="sc">%&gt;%</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(estado_notificacao, <span class="at">name =</span> <span class="st">"quantidade_registros"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">percentual =</span> <span class="fu">round</span>(</span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>      quantidade_registros <span class="sc">/</span> <span class="fu">sum</span>(quantidade_registros) <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>      <span class="dv">2</span></span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(quantidade_registros))</span>
+<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a>proporcao_por_estado_notificacao</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 3
+  estado_notificacao quantidade_registros percentual
+  &lt;chr&gt;                             &lt;int&gt;      &lt;dbl&gt;
+1 SP                              1860212      53.0 
+2 MG                              1303554      37.2 
+3 RJ                               228216       6.5 
+4 ES                               117202       3.34</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(proporcao_por_estado_notificacao)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gc</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            used   (Mb) gc trigger    (Mb)   max used   (Mb)
+Ncells   3340219  178.4    6023780   321.8    4830928  258.0
+Vcells 440814981 3363.2 1372231218 10469.3 1229664994 9381.6</code></pre>
+</div>
+</div>
+<p>##Estatistica sobre a idade</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>estatisticas_idade <span class="ot">&lt;-</span> dados_dengue_sudeste <span class="sc">%&gt;%</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    unidade_idade <span class="sc">==</span> <span class="st">"4"</span>,</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(idade),</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>    idade <span class="sc">&gt;=</span> <span class="dv">0</span>,</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>    idade <span class="sc">&lt;=</span> <span class="dv">120</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">media =</span> <span class="fu">round</span>(<span class="fu">mean</span>(idade), <span class="dv">2</span>),</span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">mediana =</span> stats<span class="sc">::</span><span class="fu">median</span>(idade),</span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">desvio_padrao =</span> <span class="fu">round</span>(stats<span class="sc">::</span><span class="fu">sd</span>(idade), <span class="dv">2</span>),</span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">minimo =</span> <span class="fu">min</span>(idade),</span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">primeiro_quartil =</span> stats<span class="sc">::</span><span class="fu">quantile</span>(idade, <span class="fl">0.25</span>),</span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">terceiro_quartil =</span> stats<span class="sc">::</span><span class="fu">quantile</span>(idade, <span class="fl">0.75</span>),</span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">maximo =</span> <span class="fu">max</span>(idade)</span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a>estatisticas_idade</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 7
+  media mediana desvio_padrao minimo primeiro_quartil terceiro_quartil maximo
+  &lt;dbl&gt;   &lt;dbl&gt;         &lt;dbl&gt;  &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;  &lt;dbl&gt;
+1  36.9      35          19.9      0               21               51    120</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(estatisticas_idade)</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gc</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            used   (Mb) gc trigger    (Mb)   max used   (Mb)
+Ncells   3341593  178.5    6023780   321.8    4830928  258.0
+Vcells 440818231 3363.2 1372231218 10469.3 1229664994 9381.6</code></pre>
+</div>
+</div>
+</section>
+<section id="visualizacoes-relevantes" class="level1">
+<h1>##Visualizacoes Relevantes</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ------------------------------------------------------------</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Gráfico de barras empilhadas:</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="co"># evolução dos casos por estado de notificação</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="co"># ------------------------------------------------------------</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>cores_estado <span class="ot">&lt;-</span> <span class="fu">brewer.pal</span>(<span class="dv">4</span>,<span class="st">"Set2"</span>)</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>grafico_evolucao_estado <span class="ot">&lt;-</span> dados_dengue_sudeste <span class="sc">%&gt;%</span></span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">estado_notificacao =</span> <span class="fu">case_when</span>(</span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>      SG_UF_NOT <span class="sc">==</span> <span class="st">"31"</span> <span class="sc">~</span> <span class="st">"MG"</span>,</span>
+<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>      SG_UF_NOT <span class="sc">==</span> <span class="st">"32"</span> <span class="sc">~</span> <span class="st">"ES"</span>,</span>
+<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>      SG_UF_NOT <span class="sc">==</span> <span class="st">"33"</span> <span class="sc">~</span> <span class="st">"RJ"</span>,</span>
+<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a>      SG_UF_NOT <span class="sc">==</span> <span class="st">"35"</span> <span class="sc">~</span> <span class="st">"SP"</span>,</span>
+<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_character_</span></span>
+<span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb40-16"><a href="#cb40-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb40-18"><a href="#cb40-18" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(estado_notificacao),</span>
+<span id="cb40-19"><a href="#cb40-19" aria-hidden="true" tabindex="-1"></a>    <span class="co">#!is.na(desfecho)</span></span>
+<span id="cb40-20"><a href="#cb40-20" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb40-21"><a href="#cb40-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(estado_notificacao, <span class="at">name =</span> <span class="st">"quantidade_registros"</span>)</span>
+<span id="cb40-22"><a href="#cb40-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-23"><a href="#cb40-23" aria-hidden="true" tabindex="-1"></a>grf <span class="ot">&lt;-</span> <span class="fu">plot_bar</span>(</span>
+<span id="cb40-24"><a href="#cb40-24" aria-hidden="true" tabindex="-1"></a>  grafico_evolucao_estado,</span>
+<span id="cb40-25"><a href="#cb40-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">colors =</span> cores_estado,</span>
+<span id="cb40-26"><a href="#cb40-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">label_x =</span> <span class="st">"Estado de notificação"</span>,</span>
+<span id="cb40-27"><a href="#cb40-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">label_y =</span> <span class="st">"Quantidade de registros"</span></span>
+<span id="cb40-28"><a href="#cb40-28" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb40-29"><a href="#cb40-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-30"><a href="#cb40-30" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(grf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analise_dengue_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>##Grafico de linha notificacoes por semana epidemiologica</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>grafico_notificacoes_semana <span class="ot">&lt;-</span> dados_dengue_sudeste <span class="sc">%&gt;%</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">semana_epidemiologica =</span> <span class="fu">as.numeric</span>(<span class="fu">substr</span>(SEM_NOT,<span class="dv">5</span>,<span class="dv">6</span>))</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(semana_epidemiologica)) <span class="sc">%&gt;%</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(semana_epidemiologica, <span class="at">name =</span> <span class="st">"quantidade de registros"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(semana_epidemiologica)</span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>grf <span class="ot">&lt;-</span> <span class="fu">plot_series</span>(</span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>  grafico_notificacoes_semana,</span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">label_x =</span> <span class="st">"Semana Epidemiólogica Notificaçao"</span>,</span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">label_y =</span> <span class="st">"Quantidade de notificações"</span></span>
+<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-15"><a href="#cb41-15" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(grf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analise_dengue_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>##Taxa semanal de óbitos pelo agravo</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>grafico_taxa_obito_semana <span class="ot">&lt;-</span> dados_dengue_sudeste <span class="sc">%&gt;%</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">semana_epidemiologica =</span> <span class="fu">as.numeric</span>(<span class="fu">substr</span>(SEM_NOT, <span class="dv">5</span>, <span class="dv">6</span>))</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(semana_epidemiologica),</span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>    EVOLUCAO <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>)</span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(semana_epidemiologica) <span class="sc">%&gt;%</span></span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_com_evolucao =</span> <span class="fu">n</span>(),</span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">obitos_pelo_agravo =</span> <span class="fu">sum</span>(EVOLUCAO <span class="sc">==</span> <span class="st">"2"</span>),</span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">taxa_obito_percentual =</span> <span class="fu">round</span>(</span>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a>      obitos_pelo_agravo <span class="sc">/</span> total_com_evolucao <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a>      <span class="dv">4</span></span>
+<span id="cb42-16"><a href="#cb42-16" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb42-17"><a href="#cb42-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb42-18"><a href="#cb42-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb42-19"><a href="#cb42-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(semana_epidemiologica)</span>
+<span id="cb42-20"><a href="#cb42-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-21"><a href="#cb42-21" aria-hidden="true" tabindex="-1"></a>grf <span class="ot">&lt;-</span> <span class="fu">plot_series</span>(</span>
+<span id="cb42-22"><a href="#cb42-22" aria-hidden="true" tabindex="-1"></a>  grafico_taxa_obito_semana <span class="sc">%&gt;%</span></span>
+<span id="cb42-23"><a href="#cb42-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(semana_epidemiologica, taxa_obito_percentual),</span>
+<span id="cb42-24"><a href="#cb42-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">label_x =</span> <span class="st">"Semana epidemiológica"</span>,</span>
+<span id="cb42-25"><a href="#cb42-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">label_y =</span> <span class="st">"Taxa de óbito pelo agravo (%)"</span></span>
+<span id="cb42-26"><a href="#cb42-26" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb42-27"><a href="#cb42-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-28"><a href="#cb42-28" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(grf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analise_dengue_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>##Histograma da idade dos pacientes até 120 anos</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>dados_idade_grafico <span class="ot">&lt;-</span> dados_dengue_sudeste <span class="sc">%&gt;%</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>    unidade_idade <span class="sc">==</span> <span class="st">"4"</span>,</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(idade),</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>    idade <span class="sc">&gt;=</span><span class="dv">0</span>,</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>    idade <span class="sc">&lt;=</span> <span class="dv">120</span></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>  )<span class="sc">%&gt;%</span></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(idade)</span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>grf <span class="ot">&lt;-</span> <span class="fu">plot_hist</span>(</span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>  dados_idade_grafico,</span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">label_x =</span> <span class="st">"Idade em anos"</span>,</span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">label_y =</span> <span class="st">"Quantidade de Registros"</span>,</span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">color =</span> <span class="st">"steelblue"</span>,</span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fl">0.7</span></span>
+<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(grf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analise_dengue_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>##Histograma completo</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>dados_idade_grafico <span class="ot">&lt;-</span> dados_dengue_sudeste <span class="sc">%&gt;%</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>    unidade_idade <span class="sc">==</span> <span class="st">"4"</span>,</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(idade),</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>    idade <span class="sc">&gt;=</span><span class="dv">0</span></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>  )<span class="sc">%&gt;%</span></span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(idade)</span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>grf <span class="ot">&lt;-</span> <span class="fu">plot_hist</span>(</span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>  dados_idade_grafico,</span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">label_x =</span> <span class="st">"Idade em anos"</span>,</span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">label_y =</span> <span class="st">"Quantidade de Registros"</span>,</span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">color =</span> <span class="st">"steelblue"</span>,</span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fl">0.7</span></span>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb44-16"><a href="#cb44-16" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(grf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analise_dengue_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>##Boxplot tempo entre sintomas e notificacao</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>dados_tempo_notificacao <span class="ot">&lt;-</span> dados_dengue_sudeste <span class="sc">%&gt;%</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data_notificacao =</span> <span class="fu">as.Date</span>(DT_NOTIFIC),</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data_primeiros_sintomas =</span> <span class="fu">as.Date</span>(DT_SIN_PRI),</span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">dias_ate_notificacao =</span> <span class="fu">as.numeric</span>( data_notificacao <span class="sc">-</span> data_primeiros_sintomas)</span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>  )<span class="sc">%&gt;%</span></span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(dias_ate_notificacao),</span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>    dias_ate_notificacao<span class="sc">&gt;=</span><span class="dv">0</span></span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a>  )<span class="sc">%&gt;%</span></span>
+<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(dias_ate_notificacao)</span>
+<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a>grf <span class="ot">&lt;-</span> <span class="fu">plot_boxplot</span>(</span>
+<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a>  dados_tempo_notificacao,</span>
+<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">label_x =</span> <span class="st">"Intervalo analisado"</span>,</span>
+<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">label_y =</span> <span class="st">"Dias entre sintomas e notificacao"</span>,</span>
+<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">colors =</span> <span class="st">"lightblue"</span></span>
+<span id="cb45-18"><a href="#cb45-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb45-19"><a href="#cb45-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-20"><a href="#cb45-20" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(grf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analise_dengue_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

@@ -1,0 +1,436 @@
+---
+title: "Trabalho de Mineração de Dados: Análise do Desfecho de Casos de Dengue na Região Sudeste do Brasil em 2024"
+author:
+  - "César Rios"
+  - "Robson Alves"
+  - "Stella Queiroz"
+format:
+  html:
+    toc: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+##Carregando Bibliotecas
+
+```{r}
+library(daltoolbox)
+library(tidyr)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(grDevices)
+library(RColorBrewer)
+
+```
+
+##Leitura da base
+
+```{r}
+dados_dengue <- read_delim(
+  file = "dados/DENGBR24.csv",
+  delim = ",",
+  col_types = cols(.default = col_character()),
+  show_col_types = FALSE
+)
+
+#head(dados_dengue)
+```
+
+##Caracteristicas da Base original
+
+```{r}
+quantidade_linhas_original <- nrow(dados_dengue)
+quantidade_colunas_original <- ncol(dados_dengue)
+
+cat("Quantidade de linhas: ",quantidade_linhas_original,"\n")
+cat("Quantidade de colunas: ",quantidade_colunas_original,"\n")
+```
+
+##Criando Base com dados do Sudeste e Filtrando apenas os casos confirmados de óbito ou cura
+
+```{r}
+dados_dengue_sudeste <- dados_dengue[
+  dados_dengue$SG_UF_NOT %in% c(33,32,35,31) &
+  dados_dengue$EVOLUCAO %in%  c("1","2","3","4"),
+]
+
+quantidade_linhas_sudeste <- nrow(dados_dengue_sudeste)
+quantidade_colunas_sudeste <- ncol(dados_dengue_sudeste)
+
+cat("Quantiade de linhas: ",quantidade_linhas_sudeste,"\n")
+cat("Quantidade de colunas: ",quantidade_colunas_sudeste,"\n")
+
+```
+
+##Removendo objetos que nao serao mais usados
+
+```{r}
+rm(dados_dengue)
+gc()
+```
+
+##tratando coluna idade
+
+```{r}
+
+dados_dengue_sudeste <- dados_dengue_sudeste %>%
+  mutate(
+    unidade_idade = substr(NU_IDADE_N, 1, 1),
+    idade = as.numeric(substr(NU_IDADE_N, 2, 4))
+  )
+```
+
+##criando coluna faixa etaria
+
+```{r}
+dados_dengue_sudeste <- dados_dengue_sudeste %>%
+  mutate(
+    faixa_etaria = case_when(
+      unidade_idade != "4" ~ NA_character_,
+      idade < 1 ~ "Menor de 1 ano",
+      idade >= 1  & idade <= 4  ~ "1 a 4 anos",
+      idade >= 5  & idade <= 9  ~ "5 a 9 anos",
+      idade >= 10 & idade <= 19 ~ "10 a 19 anos",
+      idade >= 20 & idade <= 39 ~ "20 a 39 anos",
+      idade >= 40 & idade <= 59 ~ "40 a 59 anos",
+      idade >= 60 ~ "60 anos ou mais",
+      TRUE ~ NA_character_
+    )
+  )
+```
+
+##valores faltantes por coluna da tabela
+
+```{r}
+tabela_faltantes <- data.frame(
+  atributo = names(dados_dengue_sudeste),
+  quantidade_faltantes = colSums(is.na(dados_dengue_sudeste)),
+  total_valores_coluna = sapply(dados_dengue_sudeste, length)
+) %>%
+  mutate(
+    percentual_faltantes = round(
+      quantidade_faltantes / total_valores_coluna * 100,
+      2
+    )
+  ) %>%
+  arrange(desc(quantidade_faltantes))
+
+tabela_faltantes
+
+rm(tabela_faltantes)
+gc()
+  
+```
+
+##Linhas em duplicidade
+
+```{r}
+#quantidade_linhas_duplicadas <- sum(duplicated(dados_dengue_sudeste))
+
+#quantidade_linhas_duplicadas
+```
+
+# ##Estatisticas Descritivas
+
+##Frequencia absoluta e relativa com relacao aos obitos e curas
+
+```{r}
+frequencia_evolucao <- dados_dengue_sudeste %>%
+  count(EVOLUCAO, name = "frequencia_absoluta") %>%
+  mutate(
+    descricao_evolucao = case_when(
+      EVOLUCAO == "1" ~ "Cura",
+      EVOLUCAO == "2" ~ "Óbito pelo agravo",
+      EVOLUCAO == "3" ~ "Óbito por outras causas",
+      EVOLUCAO == "4" ~ "Óbito em investigação",
+      EVOLUCAO == "9" ~ "Ignorado",
+      is.na(EVOLUCAO) ~ "Ausente",
+      TRUE ~ "Outro código"
+    ),
+    frequencia_relativa = round(
+      frequencia_absoluta / sum(frequencia_absoluta) * 100,
+      2
+    )
+  ) %>%
+  select(
+    EVOLUCAO,
+    descricao_evolucao,
+    frequencia_absoluta,
+    frequencia_relativa
+  ) %>%
+  arrange(EVOLUCAO)
+
+frequencia_evolucao
+rm(frequencia_evolucao)
+gc()
+```
+
+##Quartis das notificacoes no ano 2024
+
+```{r}
+quartis_notificacoes <- dados_dengue_sudeste %>%
+  mutate(SEM_NOT = as.numeric(SEM_NOT)) %>%
+  filter(!is.na(SEM_NOT)) %>%
+  count(SEM_NOT, name = "quantidade_notificacoes") %>%
+  arrange(SEM_NOT) %>%
+  mutate(
+    notificacoes_acumuladas = cumsum(quantidade_notificacoes),
+    percentual_acumulado = notificacoes_acumuladas /
+      sum(quantidade_notificacoes) * 100
+  ) %>%
+  summarise(
+    semana_25_porcento = min(SEM_NOT[percentual_acumulado >= 25]),
+    semana_mediana_50_porcento = min(SEM_NOT[percentual_acumulado >= 50]),
+    semana_75_porcento = min(SEM_NOT[percentual_acumulado >= 75])
+  )
+
+quartis_notificacoes
+rm(quartis_notificacoes)
+gc()
+```
+
+##Tempo medio entre inicio dos sintomas e notificacao
+
+```{r}
+
+estatisticas_tempo_notificacao <- dados_dengue_sudeste %>%
+  mutate(
+    data_notificacao = as.Date(DT_NOTIFIC),
+    data_primeiros_sintomas = as.Date(DT_SIN_PRI),
+    dias_ate_notificacao = as.numeric(
+      data_notificacao - data_primeiros_sintomas
+    )
+  ) %>%
+  filter(
+    !is.na(dias_ate_notificacao),
+    dias_ate_notificacao >= 0
+  ) %>%
+  summarise(
+    media_dias = round(mean(dias_ate_notificacao, na.rm = TRUE), 2),
+    mediana_dias = stats::median(dias_ate_notificacao, na.rm = TRUE),
+    desvio_padrao_dias = round(stats::sd(dias_ate_notificacao, na.rm = TRUE), 2),
+    minimo_dias = min(dias_ate_notificacao, na.rm = TRUE),
+    maximo_dias = max(dias_ate_notificacao, na.rm = TRUE)
+  )
+
+estatisticas_tempo_notificacao
+rm(estatisticas_tempo_notificacao)
+gc()
+```
+
+##Proporçao de Notificacoes por Estado
+
+```{r}
+proporcao_por_estado_notificacao <- dados_dengue_sudeste %>%
+  mutate(
+    estado_notificacao = case_when(
+      SG_UF_NOT == "31" ~ "MG",
+      SG_UF_NOT == "32" ~ "ES",
+      SG_UF_NOT == "33" ~ "RJ",
+      SG_UF_NOT == "35" ~ "SP",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  filter(!is.na(estado_notificacao)) %>%
+  count(estado_notificacao, name = "quantidade_registros") %>%
+  mutate(
+    percentual = round(
+      quantidade_registros / sum(quantidade_registros) * 100,
+      2
+    )
+  ) %>%
+  arrange(desc(quantidade_registros))
+
+proporcao_por_estado_notificacao
+rm(proporcao_por_estado_notificacao)
+gc()
+```
+
+##Estatistica sobre a idade
+
+```{r}
+estatisticas_idade <- dados_dengue_sudeste %>%
+  filter(
+    unidade_idade == "4",
+    !is.na(idade),
+    idade >= 0,
+    idade <= 120
+  ) %>%
+  summarise(
+    media = round(mean(idade), 2),
+    mediana = stats::median(idade),
+    desvio_padrao = round(stats::sd(idade), 2),
+    minimo = min(idade),
+    primeiro_quartil = stats::quantile(idade, 0.25),
+    terceiro_quartil = stats::quantile(idade, 0.75),
+    maximo = max(idade)
+  )
+
+estatisticas_idade
+rm(estatisticas_idade)
+gc()
+
+```
+
+# ##Visualizacoes Relevantes
+
+```{r}
+# ------------------------------------------------------------
+# Gráfico de barras empilhadas:
+# evolução dos casos por estado de notificação
+# ------------------------------------------------------------
+cores_estado <- brewer.pal(4,"Set2")
+
+grafico_evolucao_estado <- dados_dengue_sudeste %>%
+  mutate(
+    estado_notificacao = case_when(
+      SG_UF_NOT == "31" ~ "MG",
+      SG_UF_NOT == "32" ~ "ES",
+      SG_UF_NOT == "33" ~ "RJ",
+      SG_UF_NOT == "35" ~ "SP",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  filter(
+    !is.na(estado_notificacao),
+    #!is.na(desfecho)
+  ) %>%
+  count(estado_notificacao, name = "quantidade_registros")
+
+grf <- plot_bar(
+  grafico_evolucao_estado,
+  colors = cores_estado,
+  label_x = "Estado de notificação",
+  label_y = "Quantidade de registros"
+)
+
+plot(grf)
+
+```
+
+##Grafico de linha notificacoes por semana epidemiologica
+
+```{r}
+grafico_notificacoes_semana <- dados_dengue_sudeste %>%
+  mutate(
+    semana_epidemiologica = as.numeric(substr(SEM_NOT,5,6))
+  ) %>%
+  filter(!is.na(semana_epidemiologica)) %>%
+  count(semana_epidemiologica, name = "quantidade de registros") %>%
+  arrange(semana_epidemiologica)
+
+grf <- plot_series(
+  grafico_notificacoes_semana,
+  label_x = "Semana Epidemiólogica Notificaçao",
+  label_y = "Quantidade de notificações"
+)
+
+plot(grf)
+
+```
+
+##Taxa semanal de óbitos pelo agravo
+
+```{r}
+grafico_taxa_obito_semana <- dados_dengue_sudeste %>%
+  mutate(
+    semana_epidemiologica = as.numeric(substr(SEM_NOT, 5, 6))
+  ) %>%
+  filter(
+    !is.na(semana_epidemiologica),
+    EVOLUCAO %in% c("1", "2", "3", "4")
+  ) %>%
+  group_by(semana_epidemiologica) %>%
+  summarise(
+    total_com_evolucao = n(),
+    obitos_pelo_agravo = sum(EVOLUCAO == "2"),
+    taxa_obito_percentual = round(
+      obitos_pelo_agravo / total_com_evolucao * 100,
+      4
+    ),
+    .groups = "drop"
+  ) %>%
+  arrange(semana_epidemiologica)
+
+grf <- plot_series(
+  grafico_taxa_obito_semana %>%
+    select(semana_epidemiologica, taxa_obito_percentual),
+  label_x = "Semana epidemiológica",
+  label_y = "Taxa de óbito pelo agravo (%)"
+)
+
+plot(grf)
+```
+
+##Histograma da idade dos pacientes até 120 anos
+
+```{r}
+
+dados_idade_grafico <- dados_dengue_sudeste %>%
+  filter(
+    unidade_idade == "4",
+    !is.na(idade),
+    idade >=0,
+    idade <= 120
+  )%>%
+  select(idade)
+
+grf <- plot_hist(
+  dados_idade_grafico,
+  label_x = "Idade em anos",
+  label_y = "Quantidade de Registros",
+  color = "steelblue",
+  alpha = 0.7
+  )
+plot(grf)
+```
+
+##Histograma completo
+
+```{r}
+dados_idade_grafico <- dados_dengue_sudeste %>%
+  filter(
+    unidade_idade == "4",
+    !is.na(idade),
+    idade >=0
+  )%>%
+  select(idade)
+
+grf <- plot_hist(
+  dados_idade_grafico,
+  label_x = "Idade em anos",
+  label_y = "Quantidade de Registros",
+  color = "steelblue",
+  alpha = 0.7
+)
+plot(grf)
+```
+
+##Boxplot tempo entre sintomas e notificacao
+
+```{r}
+dados_tempo_notificacao <- dados_dengue_sudeste %>%
+  mutate(
+    data_notificacao = as.Date(DT_NOTIFIC),
+    data_primeiros_sintomas = as.Date(DT_SIN_PRI),
+    dias_ate_notificacao = as.numeric( data_notificacao - data_primeiros_sintomas)
+  )%>%
+  filter(
+    !is.na(dias_ate_notificacao),
+    dias_ate_notificacao>=0
+  )%>%
+  select(dias_ate_notificacao)
+
+grf <- plot_boxplot(
+  dados_tempo_notificacao,
+  label_x = "Intervalo analisado",
+  label_y = "Dias entre sintomas e notificacao",
+  colors = "lightblue"
+)
+
+plot(grf)
+```
