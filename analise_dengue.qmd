@@ -312,6 +312,80 @@ plot(grf)
 
 ```
 
+##Grafico de linha notificaçoes por mês
+
+```{r}
+grafico_notificacoes_mes <- dados_dengue_sudeste %>%
+  mutate(
+    data_notificacao = as.Date(DT_NOTIFIC),
+    mes_notificacao_num = format(data_notificacao, "%m"),
+    mes_notificacao = factor(
+      mes_notificacao_num,
+      levels = c("01","02","03","04","05","06","07","08","09","10","11","12"),
+      labels = c("Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez")
+    )
+  ) %>%
+  filter(!is.na(mes_notificacao)) %>%
+  count(mes_notificacao, name = "quantidade_notificacoes")
+
+grf <- plot_series(
+  grafico_notificacoes_mes,
+  label_x = "Mês da notificação",
+  label_y = "Quantidade de notificações"
+)
+
+plot(grf)
+```
+
+##Taxa mensal de óbito pelo agravo
+
+```{r}
+## Gráfico de linha: taxa de óbito pelo agravo por mês
+
+grafico_taxa_obito_mes <- dados_dengue_sudeste %>%
+  mutate(
+    data_notificacao = as.Date(DT_NOTIFIC),
+    mes_notificacao_num = format(data_notificacao, "%m"),
+    mes_notificacao = factor(
+      mes_notificacao_num,
+      levels = c(
+        "01", "02", "03", "04", "05", "06",
+        "07", "08", "09", "10", "11", "12"
+      ),
+      labels = c(
+        "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+        "Jul", "Ago", "Set", "Out", "Nov", "Dez"
+      )
+    )
+  ) %>%
+  filter(
+    !is.na(mes_notificacao),
+    EVOLUCAO %in% c("1", "2", "3", "4")
+  ) %>%
+  group_by(mes_notificacao) %>%
+  summarise(
+    total_com_evolucao = n(),
+    obitos_pelo_agravo = sum(EVOLUCAO == "2"),
+    taxa_obito_percentual = round(
+      obitos_pelo_agravo / total_com_evolucao * 100,
+      4
+    ),
+    .groups = "drop"
+  )
+
+grf <- plot_series(
+  grafico_taxa_obito_mes %>%
+    select(mes_notificacao, taxa_obito_percentual),
+  label_x = "Mês da notificação",
+  label_y = "Taxa de óbito pelo agravo (%)"
+)
+
+plot(grf)
+
+rm(grafico_taxa_obito_mes)
+gc()
+```
+
 ##Grafico de linha notificacoes por semana epidemiologica
 
 ```{r}
@@ -408,6 +482,41 @@ grf <- plot_hist(
   alpha = 0.7
 )
 plot(grf)
+```
+
+##Grafico de quantidade de registros por faixa etaria
+
+```{r}
+
+grafico_faixa_etaria <- dados_dengue_sudeste %>%
+  filter(!is.na(faixa_etaria)) %>%
+  mutate(
+    faixa_etaria = factor(
+      faixa_etaria,
+      levels = c(
+        "Menor de 1 ano",
+        "1 a 4 anos",
+        "5 a 9 anos",
+        "10 a 19 anos",
+        "20 a 39 anos",
+        "40 a 59 anos",
+        "60 anos ou mais"
+      )
+    )
+  ) %>%
+  count(faixa_etaria, name = "quantidade_registros")
+
+grf <- plot_bar(
+  grafico_faixa_etaria,
+  label_x = "Faixa etária",
+  label_y = "Quantidade de registros",
+  colors = "steelblue"
+)
+
+plot(grf)
+
+rm(grafico_faixa_etaria)
+gc()
 ```
 
 ##Boxplot tempo entre sintomas e notificacao
